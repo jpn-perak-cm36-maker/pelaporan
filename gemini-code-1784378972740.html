@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin (Live)</title>
+    <!-- Panggil Chart.js untuk melukis graf -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; text-align: center; }
+        .chart-container { width: 100%; height: 400px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <h2>Papan Pemuka Laporan (Real-Time)</h2>
+    <p>Graf di bawah akan berubah secara automatik sebaik sahaja laporan baru dihantar.</p>
+    
+    <div class="chart-container">
+        <canvas id="grafLaporan"></canvas>
+    </div>
+
+    <!-- Sambungkan Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // Konfigurasi Firebase anda
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JilYmihbO6qiblwyedQTP9qD95mEVFk",
+            authDomain: "dashboard-baru.firebaseapp.com",
+            projectId: "dashboard-baru",
+            storageBucket: "dashboard-baru.firebasestorage.app",
+            messagingSenderId: "48209617588",
+            appId: "1:48209617588:web:10b0373244b0493b2d2de1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // 1. Setup tapak graf kosong guna Chart.js
+        const ctx = document.getElementById('grafLaporan').getContext('2d');
+        let cartaLaporan = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['IT', 'Fasiliti', 'Kebersihan'],
+                datasets: [{
+                    label: 'Jumlah Laporan',
+                    data: [0, 0, 0], // Nilai mula-mula kosong
+                    backgroundColor: ['#ff6384', '#36a2eb', '#cc65fe']
+                }]
+            },
+            options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        });
+
+        // 2. Fungsi Magis: Dengar perubahan data Firebase secara LIVE (onSnapshot)
+        onSnapshot(collection(db, "laporan"), (snapshot) => {
+            let kiraIT = 0;
+            let kiraFasiliti = 0;
+            let kiraKebersihan = 0;
+
+            // Kira jumlah mengikut kategori laporan yang wujud di Firebase
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+                if (data.kategori === 'IT') kiraIT++;
+                if (data.kategori === 'Fasiliti') kiraFasiliti++;
+                if (data.kategori === 'Kebersihan') kiraKebersihan++;
+            });
+
+            // 3. Masukkan data baharu dan gerakkan animasi graf
+            cartaLaporan.data.datasets[0].data = [kiraIT, kiraFasiliti, kiraKebersihan];
+            cartaLaporan.update(); 
+        });
+    </script>
+</body>
+</html>

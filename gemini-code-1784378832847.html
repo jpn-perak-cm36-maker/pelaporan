@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borang Pelaporan</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 400px; margin: 50px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { background: #007bff; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+
+    <h2>Hantar Laporan</h2>
+    <form id="borangLaporan">
+        <div class="input-group">
+            <label>Nama Pengadu</label>
+            <input type="text" id="nama" required>
+        </div>
+        <div class="input-group">
+            <label>Kategori Laporan</label>
+            <select id="kategori" required>
+                <option value="IT">Masalah IT</option>
+                <option value="Fasiliti">Kerosakan Fasiliti</option>
+                <option value="Kebersihan">Isu Kebersihan</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>Butiran Laporan</label>
+            <textarea id="butiran" rows="4" required></textarea>
+        </div>
+        <button type="submit">Hantar Laporan</button>
+    </form>
+
+    <!-- Sambungkan Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+
+        // Konfigurasi Firebase anda (Sudah dimasukkan)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD3JilYmihbO6qiblwyedQTP9qD95mEVFk",
+            authDomain: "dashboard-baru.firebaseapp.com",
+            projectId: "dashboard-baru",
+            storageBucket: "dashboard-baru.firebasestorage.app",
+            messagingSenderId: "48209617588",
+            appId: "1:48209617588:web:10b0373244b0493b2d2de1"
+        };
+
+        // Initialize Firebase & Firestore
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Fungsi hantar data ke Firebase
+        document.getElementById('borangLaporan').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const nama = document.getElementById('nama').value;
+            const kategori = document.getElementById('kategori').value;
+            const butiran = document.getElementById('butiran').value;
+
+            try {
+                // Menyimpan data ke dalam koleksi bernama 'laporan'
+                await addDoc(collection(db, "laporan"), {
+                    namaPengadu: nama,
+                    kategori: kategori,
+                    butiran: butiran,
+                    tarikh: serverTimestamp()
+                });
+
+                alert("Laporan berjaya dihantar ke Firebase!");
+                document.getElementById('borangLaporan').reset();
+            } catch (error) {
+                console.error("Ralat: ", error);
+                alert("Gagal menghantar laporan.");
+            }
+        });
+    </script>
+</body>
+</html>
